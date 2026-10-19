@@ -102,6 +102,7 @@ targets:
         PRODUCT_NAME: ChargeCapHelper
         SKIP_INSTALL: YES
         ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_OBJC_BRIDGING_HEADER: $(SRCROOT)/Helper/ChargeCapHelper-Bridging-Header.h
         OTHER_CODE_SIGN_FLAGS: "-i com.banyudu.chargecap.helper"
     info:
       path: Helper/Info.plist

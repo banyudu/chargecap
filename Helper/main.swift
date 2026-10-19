@@ -11,14 +11,14 @@ private func printState(_ state: ChargeCapState) {
 }
 
 private func runCommandLine(_ arguments: [String]) -> Int32 {
-    let firmware = FirmwareChargeLimit()
+    let limits = ChargeLimitController()
     let store = ChargeCapConfigStore()
     var configuration = store.load()
 
     do {
         switch arguments.dropFirst().first {
         case "probe", "state":
-            printState(firmware.readState(configuration: configuration))
+            printState(limits.readState(configuration: configuration))
             return 0
         case "set":
             guard arguments.count >= 3, let upper = Int(arguments[2]) else {
@@ -26,14 +26,13 @@ private func runCommandLine(_ arguments: [String]) -> Int32 {
                 return 64
             }
             let requested = ChargeCapConfiguration.forUpper(upper)
-            try firmware.setLimit(upper: requested.upper, lower: requested.lower)
-            configuration = requested
+            configuration = try limits.setLimit(upper: requested.upper, lower: requested.lower)
             store.save(configuration)
-            printState(firmware.readState(configuration: configuration))
+            printState(limits.readState(configuration: configuration))
             return 0
         case "off":
-            try firmware.disableLimit()
-            printState(firmware.readState(configuration: configuration))
+            try limits.disableLimit()
+            printState(limits.readState(configuration: configuration))
             return 0
         default:
             fputs("usage: ChargeCapHelper [state|probe|set <upper-percent>|off]\n", stderr)

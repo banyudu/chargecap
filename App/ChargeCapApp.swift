@@ -86,7 +86,7 @@ private struct ChargeCapMenuView: View {
             )) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Charge cap")
-                    Text(model.state.active ? "Stops at \(model.state.upper)%" : "Firmware charging limit is off")
+                    Text(model.state.active ? "Stops at \(model.state.upper)%" : "Charge limit is off")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -101,17 +101,20 @@ private struct ChargeCapMenuView: View {
                     get: { model.selectedLimit },
                     set: { model.setLimit($0) }
                 )) {
-                    ForEach(Array(stride(
-                        from: ChargeCapConstants.minimumCap,
-                        through: ChargeCapConstants.maximumCap,
-                        by: 5
-                    )), id: \.self) { value in
+                    ForEach(model.limitOptions, id: \.self) { value in
                         Text("\(value)%").tag(value)
                     }
                 }
                 .labelsHidden()
                 .frame(width: 90)
                 .disabled(!model.helperIsReady || model.isBusy)
+            }
+
+            if let detail = model.backendDetail {
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if let message = model.state.error ?? model.errorMessage {

@@ -41,6 +41,8 @@ final class FirmwareChargeLimit {
                 upper: upper,
                 lower: lower,
                 rawActivation: Int(reading.activation),
+                backend: .firmware,
+                availableLimits: [],
                 error: warning
             )
         } catch {
@@ -50,6 +52,8 @@ final class FirmwareChargeLimit {
                 upper: configuration.upper,
                 lower: configuration.lower,
                 rawActivation: 0,
+                backend: .firmware,
+                availableLimits: [],
                 error: error.localizedDescription
             )
         }
@@ -143,11 +147,14 @@ final class FirmwareChargeLimit {
 
 enum ChargeCapError: LocalizedError {
     case invalidLimits(upper: Int, lower: Int)
+    case noSupportedBackend
 
     var errorDescription: String? {
         switch self {
         case .invalidLimits(let upper, let lower):
             return "Invalid charge limits \(upper)% / \(lower)%. The upper limit must be 50-100% and greater than the lower limit."
+        case .noSupportedBackend:
+            return "Charge limiting is not available on this Mac."
         }
     }
 }

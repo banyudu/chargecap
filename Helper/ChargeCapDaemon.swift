@@ -2,7 +2,7 @@ import Foundation
 
 final class ChargeCapDaemonService: NSObject, ChargeCapHelperXPCProtocol {
     private let queue = DispatchQueue(label: "com.banyudu.chargecap.helper.queue")
-    private let firmware = FirmwareChargeLimit()
+    private let limits = ChargeLimitController()
     private let store = ChargeCapConfigStore()
     private var configuration: ChargeCapConfiguration
 
@@ -13,7 +13,7 @@ final class ChargeCapDaemonService: NSObject, ChargeCapHelperXPCProtocol {
 
     func fetchState(withReply reply: @escaping (NSData?, NSString?) -> Void) {
         queue.async {
-            let state = self.firmware.readState(configuration: self.configuration)
+            let state = self.limits.readState(configuration: self.configuration)
             self.send(state: state, reply: reply)
         }
     }
@@ -24,19 +24,21 @@ final class ChargeCapDaemonService: NSObject, ChargeCapHelperXPCProtocol {
 
             do {
                 if enabled {
-                    try self.firmware.setLimit(upper: requested.upper, lower: requested.lower)
+                    let applied = try self.limits.setLimit(upper: requested.upper, lower: requested.lower)
+                    self.configuration = applied
+                    self.store.save(applied)
                 } else {
-                    try self.firmware.disableLimit()
+                    try self.limits.disableLimit()
+                    let persisted = requested.sanitized()
+                    self.configuration = persisted
+                    self.store.save(persisted)
                 }
             } catch {
                 reply(nil, error.localizedDescription as NSString)
                 return
             }
 
-            self.configuration = requested
-            self.store.save(requested)
-
-            let state = self.firmware.readState(configuration: requested)
+            let state = self.limits.readState(configuration: self.configuration)
             self.send(state: state, reply: reply)
         }
     }

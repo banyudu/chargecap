@@ -38,6 +38,31 @@ final class AppModel: ObservableObject {
         helperStatus == .enabled
     }
 
+    var limitOptions: [Int] {
+        if !state.availableLimits.isEmpty {
+            return state.availableLimits
+        }
+        return Array(stride(
+            from: ChargeCapConstants.minimumCap,
+            through: ChargeCapConstants.maximumCap,
+            by: 5
+        ))
+    }
+
+    var backendDetail: String? {
+        switch state.backend {
+        case .native:
+            let limits = state.availableLimits.map { "\($0)%" }.joined(separator: ", ")
+            return limits.isEmpty
+                ? "Using the charge limit built into macOS."
+                : "Using the macOS native limit (\(limits))."
+        case .firmware:
+            return "Using the firmware charge limit."
+        case .unavailable:
+            return nil
+        }
+    }
+
     var helperStatusText: String {
         switch helperStatus {
         case .enabled:
@@ -84,6 +109,8 @@ final class AppModel: ObservableObject {
                 upper: selectedLimit,
                 lower: ChargeCapConfiguration.forUpper(selectedLimit).lower,
                 rawActivation: 0,
+                backend: .unavailable,
+                availableLimits: [],
                 error: nil
             )
             return
@@ -103,6 +130,8 @@ final class AppModel: ObservableObject {
                 upper: selectedLimit,
                 lower: ChargeCapConfiguration.forUpper(selectedLimit).lower,
                 rawActivation: 0,
+                backend: .unavailable,
+                availableLimits: [],
                 error: error.localizedDescription
             )
         }

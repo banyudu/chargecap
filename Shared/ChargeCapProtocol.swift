@@ -25,12 +25,20 @@ enum ChargeCapConstants {
         "(identifier \"\(appBundleID)\" or identifier \"\(controlBundleID)\")"
 }
 
+enum ChargeCapBackend: String, Codable, Equatable {
+    case firmware
+    case native
+    case unavailable
+}
+
 struct ChargeCapState: Codable, Equatable {
     var active: Bool
     var supported: Bool
     var upper: Int
     var lower: Int
     var rawActivation: Int
+    var backend: ChargeCapBackend
+    var availableLimits: [Int]
     var error: String?
 
     static let unavailable = ChargeCapState(
@@ -39,6 +47,8 @@ struct ChargeCapState: Codable, Equatable {
         upper: ChargeCapConstants.defaultUpper,
         lower: ChargeCapConstants.defaultLower,
         rawActivation: 0,
+        backend: .unavailable,
+        availableLimits: [],
         error: nil
     )
 }
