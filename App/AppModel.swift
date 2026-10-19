@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import ServiceManagement
 import SwiftUI
+import WidgetKit
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -78,7 +79,7 @@ final class AppModel: ObservableObject {
         }
     }
 
-    var menuBarSymbol: String {
+    var statusSymbol: String {
         if state.active {
             return "battery.75percent"
         }
@@ -96,6 +97,7 @@ final class AppModel: ObservableObject {
             registerHelperIfNeeded()
         }
         await refreshAll()
+        ControlCenter.shared.reloadControls(ofKind: ChargeCapConstants.controlKind)
     }
 
     func refreshAll() async {
@@ -103,7 +105,7 @@ final class AppModel: ObservableObject {
         helperStatus = SMAppService.daemon(plistName: ChargeCapConstants.daemonPlistName).status
 
         guard helperStatus == .enabled else {
-            state = ChargeCapState(
+            updateState(ChargeCapState(
                 active: false,
                 supported: false,
                 upper: selectedLimit,
@@ -112,19 +114,18 @@ final class AppModel: ObservableObject {
                 backend: .unavailable,
                 availableLimits: [],
                 error: nil
-            )
+            ))
             return
         }
 
         do {
             let refreshed = try await HelperClient.shared.fetchState()
-            state = refreshed
-            if refreshed.supported, !refreshed.active {
+            if refreshed.supported {
                 selectedLimit = refreshed.upper
-                state.upper = selectedLimit
             }
+            updateState(refreshed)
         } catch {
-            state = ChargeCapState(
+            updateState(ChargeCapState(
                 active: false,
                 supported: false,
                 upper: selectedLimit,
@@ -133,8 +134,14 @@ final class AppModel: ObservableObject {
                 backend: .unavailable,
                 availableLimits: [],
                 error: error.localizedDescription
-            )
+            ))
         }
+    }
+
+    private func updateState(_ newState: ChargeCapState) {
+        guard newState != state else { return }
+        state = newState
+        ControlCenter.shared.reloadControls(ofKind: ChargeCapConstants.controlKind)
     }
 
     func registerHelper() {
@@ -182,7 +189,7 @@ final class AppModel: ObservableObject {
                     upper: cap.upper,
                     lower: cap.lower
                 )
-                state = updated
+                updateState(updated)
                 errorMessage = updated.error
             } catch {
                 errorMessage = error.localizedDescription
@@ -207,7 +214,7 @@ final class AppModel: ObservableObject {
                     upper: cap.upper,
                     lower: cap.lower
                 )
-                state = updated
+                updateState(updated)
                 errorMessage = updated.error
             } catch {
                 errorMessage = error.localizedDescription

@@ -1,8 +1,13 @@
 # ChargeCap
 
-ChargeCap is a tiny menu-bar utility and Control Center switch for limiting how
+ChargeCap is a tiny settings app and Control Center switch for limiting how
 high your MacBook battery charges. It is a free, local alternative to
 subscription charge-limiting features and does not run a polling loop.
+
+ChargeCap has no menu-bar item and no Dock icon. Open
+`/Applications/ChargeCap.app` from Finder or Spotlight whenever you want to
+change the limit. The Control Center switch keeps working while the settings
+app is closed because the privileged helper runs as a daemon.
 
 ## Requirements
 
@@ -63,7 +68,7 @@ adapter power.
 
 ## Architecture
 
-- `ChargeCap` — menu-bar app and settings UI.
+- `ChargeCap` — settings window and helper installation.
 - `ChargeCapControl` — Control Center toggle (`ControlWidgetToggle`).
 - `ChargeCapHelper` — root helper installed with `SMAppService.daemon`. It
   exposes the limit over XPC and only accepts connections from ChargeCap's
@@ -99,7 +104,7 @@ certificate lookup does not match.
 macOS does not allow an app to place a Control Center control automatically, so
 this one-time step is required.
 
-The switch toggles the cap using the limit selected in the menu-bar app.
+The switch toggles the cap using the limit selected in the settings app.
 Changing the limit while the cap is active applies the new value immediately.
 
 ## Command-line testing

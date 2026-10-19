@@ -47,6 +47,7 @@ final class HelperClient {
         return try await withCheckedThrowingContinuation { continuation in
             let completionLock = NSLock()
             var completed = false
+            var timeoutWorkItem: DispatchWorkItem?
 
             func complete(data: NSData?, error: NSString?) {
                 completionLock.lock()
@@ -57,6 +58,7 @@ final class HelperClient {
                 completed = true
                 completionLock.unlock()
 
+                timeoutWorkItem?.cancel()
                 connection.invalidate()
 
                 if let error {
@@ -74,6 +76,13 @@ final class HelperClient {
                 }
             }
 
+            connection.interruptionHandler = {
+                complete(data: nil, error: "ChargeCapHelper connection was interrupted." as NSString)
+            }
+            connection.invalidationHandler = {
+                complete(data: nil, error: "ChargeCapHelper connection was invalidated." as NSString)
+            }
+
             let proxy = connection.remoteObjectProxyWithErrorHandler { error in
                 complete(data: nil, error: error.localizedDescription as NSString)
             }
@@ -81,6 +90,12 @@ final class HelperClient {
                 complete(data: nil, error: "Could not create an XPC proxy." as NSString)
                 return
             }
+
+            let timeout = DispatchWorkItem {
+                complete(data: nil, error: "ChargeCapHelper did not respond in time." as NSString)
+            }
+            timeoutWorkItem = timeout
+            DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: timeout)
 
             connection.resume()
             invoke(helper) { data, error in

@@ -1,20 +1,31 @@
+import AppKit
 import SwiftUI
 
 @main
 struct ChargeCapApp: App {
+    @NSApplicationDelegateAdaptor(ChargeCapAppDelegate.self) private var appDelegate
     @StateObject private var model = AppModel()
 
     var body: some Scene {
-        MenuBarExtra {
-            ChargeCapMenuView(model: model)
-        } label: {
-            Label("\(model.battery.percent)%", systemImage: model.menuBarSymbol)
+        Window("ChargeCap", id: "settings") {
+            ChargeCapSettingsView(model: model)
         }
-        .menuBarExtraStyle(.window)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
 
-private struct ChargeCapMenuView: View {
+final class ChargeCapAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        true
+    }
+}
+
+private struct ChargeCapSettingsView: View {
     @ObservedObject var model: AppModel
     @State private var confirmingRemoval = false
 
@@ -37,7 +48,7 @@ private struct ChargeCapMenuView: View {
             }
         }
         .padding(16)
-        .frame(width: 330)
+        .frame(width: 360)
         .alert("Remove ChargeCapHelper?", isPresented: $confirmingRemoval) {
             Button("Cancel", role: .cancel) {}
             Button("Restore Charging and Remove", role: .destructive) {
@@ -50,7 +61,7 @@ private struct ChargeCapMenuView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image(systemName: model.menuBarSymbol)
+            Image(systemName: model.statusSymbol)
                 .font(.system(size: 30))
                 .foregroundStyle(model.state.active ? .green : .primary)
             VStack(alignment: .leading, spacing: 2) {

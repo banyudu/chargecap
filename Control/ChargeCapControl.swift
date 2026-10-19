@@ -20,8 +20,11 @@ struct ChargeCapControl: ControlWidget {
                 isOn: isOn,
                 action: ToggleChargeCapIntent()
             ) { isOn in
-                Label(isOn ? "Capped" : "Off", systemImage: "battery.75percent")
-                    .controlWidgetActionHint(isOn ? "Allow normal charging" : "Enable charge cap")
+                Label(
+                    isOn ? "Capped" : "Off",
+                    systemImage: isOn ? "battery.75percent" : "battery.100percent"
+                )
+                .controlWidgetActionHint(isOn ? "Allow normal charging" : "Enable charge cap")
             }
             .tint(.green)
         }
@@ -35,7 +38,10 @@ struct ChargeCapControl: ControlWidget {
         }
 
         func currentValue() async throws -> Bool {
-            try await HelperClient.shared.fetchState().active
+            guard let state = try? await HelperClient.shared.fetchState() else {
+                return false
+            }
+            return state.active
         }
     }
 }
