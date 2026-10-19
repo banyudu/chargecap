@@ -80,3 +80,28 @@ protocol ChargeCapHelperXPCProtocol {
     func fetchState(withReply reply: @escaping (NSData?, NSString?) -> Void)
     func apply(enabled: Bool, upper: Int, lower: Int, withReply reply: @escaping (NSData?, NSString?) -> Void)
 }
+
+extension ChargeCapState {
+    private enum CodingKeys: String, CodingKey {
+        case active
+        case supported
+        case upper
+        case lower
+        case rawActivation
+        case backend
+        case availableLimits
+        case error
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        active = try container.decode(Bool.self, forKey: .active)
+        supported = try container.decode(Bool.self, forKey: .supported)
+        upper = try container.decode(Int.self, forKey: .upper)
+        lower = try container.decode(Int.self, forKey: .lower)
+        rawActivation = try container.decodeIfPresent(Int.self, forKey: .rawActivation) ?? 0
+        backend = try container.decodeIfPresent(ChargeCapBackend.self, forKey: .backend) ?? .firmware
+        availableLimits = try container.decodeIfPresent([Int].self, forKey: .availableLimits) ?? []
+        error = try container.decodeIfPresent(String.self, forKey: .error)
+    }
+}
