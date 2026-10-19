@@ -1,0 +1,123 @@
+name: ChargeCap
+
+options:
+  bundleIdPrefix: com.banyudu
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: RYLS8UDY5D
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    ALWAYS_SEARCH_USER_PATHS: NO
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+  configs:
+    Debug:
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: YES
+    Release:
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+
+targets:
+  ChargeCap:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+      - path: Resources/com.banyudu.chargecap.helper.plist
+        buildPhase:
+          copyFiles:
+            destination: wrapper
+            subpath: Contents/Library/LaunchDaemons
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.banyudu.chargecap
+        PRODUCT_NAME: ChargeCap
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleName: ChargeCap
+        CFBundleDisplayName: ChargeCap
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: "26.0"
+        LSApplicationCategoryType: public.app-category.utilities
+        LSUIElement: true
+        NSHumanReadableCopyright: ""
+    dependencies:
+      - target: ChargeCapHelper
+        embed: true
+        copy:
+          destination: executables
+      - target: ChargeCapControl
+        embed: true
+
+  ChargeCapControl:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Control
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.banyudu.chargecap.control
+        PRODUCT_NAME: ChargeCapControl
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
+    info:
+      path: Control/Info.plist
+      properties:
+        CFBundleName: ChargeCapControl
+        CFBundleDisplayName: ChargeCap
+        CFBundlePackageType: XPC!
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: "26.0"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Control/ChargeCapControl.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.temporary-exception.mach-lookup.global-name:
+          - com.banyudu.chargecap.helper
+
+  ChargeCapHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Helper
+      - path: Shared/ChargeCapProtocol.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.banyudu.chargecap.helper
+        PRODUCT_NAME: ChargeCapHelper
+        SKIP_INSTALL: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        OTHER_CODE_SIGN_FLAGS: "-i com.banyudu.chargecap.helper"
+    info:
+      path: Helper/Info.plist
+      properties:
+        CFBundleIdentifier: com.banyudu.chargecap.helper
+        CFBundleName: ChargeCapHelper
+        CFBundlePackageType: TOOL
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+
+schemes:
+  ChargeCap:
+    build:
+      targets:
+        ChargeCap: all
+    run:
+      config: Debug
+    archive:
+      config: Release
