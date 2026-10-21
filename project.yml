@@ -30,6 +30,7 @@ targets:
     sources:
       - path: App
       - path: Shared
+      - path: Resources/AppIcon.icns
       - path: Resources/com.banyudu.chargecap.helper.plist
         buildPhase:
           copyFiles:
@@ -45,6 +46,7 @@ targets:
       properties:
         CFBundleName: ChargeCap
         CFBundleDisplayName: ChargeCap
+        CFBundleIconFile: AppIcon
         CFBundlePackageType: APPL
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)

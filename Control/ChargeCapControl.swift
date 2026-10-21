@@ -14,16 +14,21 @@ struct ChargeCapControl: ControlWidget {
         StaticControlConfiguration(
             kind: ChargeCapConstants.controlKind,
             provider: Provider()
-        ) { isOn in
+        ) { value in
             ControlWidgetToggle(
                 "Charge Cap",
-                isOn: isOn,
+                isOn: value.isOn,
                 action: ToggleChargeCapIntent()
             ) { isOn in
-                Label(
-                    isOn ? "Capped" : "Off",
-                    systemImage: isOn ? "battery.75percent" : "battery.100percent"
-                )
+                Label {
+                    Text(isOn ? "Capped" : "Off")
+                } icon: {
+                    Text("\(value.upper)%")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
                 .controlWidgetActionHint(isOn ? "Allow normal charging" : "Enable charge cap")
             }
             .tint(.green)
@@ -32,16 +37,25 @@ struct ChargeCapControl: ControlWidget {
         .description("Limit battery charging to your configured percentage.")
     }
 
+    struct Value: Equatable, Sendable {
+        var isOn: Bool
+        var upper: Int
+    }
+
     struct Provider: ControlValueProvider {
-        var previewValue: Bool {
-            false
+        var previewValue: Value {
+            Value(isOn: true, upper: ChargeCapConstants.defaultUpper)
         }
 
-        func currentValue() async throws -> Bool {
+        func currentValue() async throws -> Value {
             guard let state = try? await HelperClient.shared.fetchState() else {
-                return false
+                return Value(isOn: false, upper: ChargeCapConstants.defaultUpper)
             }
-            return state.active
+
+            return Value(
+                isOn: state.active,
+                upper: state.supported ? state.upper : ChargeCapConstants.defaultUpper
+            )
         }
     }
 }
