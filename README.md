@@ -95,6 +95,23 @@ Set your own signing identity with
 `make build SIGN_IDENTITY="Developer ID Application: ..."` if the default
 certificate lookup does not match.
 
+## Build a notarized release
+
+The release script builds a universal app, signs every nested component with a
+secure timestamp, creates a drag-to-Applications DMG, submits it to Apple, and
+staples the notarization ticket:
+
+```bash
+make release VERSION=0.1.0
+```
+
+Notarization uses an App Store Connect API key configured with
+`APPLE_API_KEY_PATH`, `APPLE_API_KEY_ID`, and `APPLE_API_ISSUER`. The script
+defaults to `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`. For a
+local-only signed build, set `CHARGE_CAP_SKIP_NOTARIZATION=1`.
+
+The resulting artifact is `dist/ChargeCap-<VERSION>.dmg`.
+
 ## Add the Control Center switch
 
 1. Open Control Center.

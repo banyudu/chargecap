@@ -14,6 +14,7 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "26.0"
     CODE_SIGN_STYLE: Automatic
     ENABLE_HARDENED_RUNTIME: YES
+    OTHER_CODE_SIGN_FLAGS: "--timestamp"
     ALWAYS_SEARCH_USER_PATHS: NO
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
@@ -105,7 +106,7 @@ targets:
         SKIP_INSTALL: YES
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_OBJC_BRIDGING_HEADER: $(SRCROOT)/Helper/ChargeCapHelper-Bridging-Header.h
-        OTHER_CODE_SIGN_FLAGS: "-i com.banyudu.chargecap.helper"
+        OTHER_CODE_SIGN_FLAGS: "--timestamp -i com.banyudu.chargecap.helper"
     info:
       path: Helper/Info.plist
       properties:

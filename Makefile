@@ -5,7 +5,7 @@ BUILD_DIR := $(ROOT_DIR)/.build/xcode
 DIST_APP := $(ROOT_DIR)/dist/ChargeCap.app
 SIGN_IDENTITY ?= $(shell security find-identity -v -p codesigning 2>/dev/null | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -n 1)
 
-.PHONY: project build build-unsigned install run clean
+.PHONY: project build build-unsigned install run release clean
 
 project:
 	xcodegen generate
@@ -34,6 +34,9 @@ install: build
 
 run: build
 	open "$(DIST_APP)"
+
+release:
+	./scripts/release.sh $(VERSION)
 
 clean:
 	rm -rf "$(BUILD_DIR)" "$(ROOT_DIR)/dist" "$(PROJECT)"
